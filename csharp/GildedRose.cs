@@ -5,82 +5,125 @@ namespace csharp
     public class GildedRose
     {
         IList<Item> Items;
+        public List<string> IncreasInQualityItems = new List<string>();
+        public GildedRose()
+        {
+            // this list is currently filled by me, but if there will be conneciton to the DB, then this code will be
+            // removed
+            IncreasInQualityItems.Add("Aged Brie");
+            IncreasInQualityItems.Add("Backstage passes to a TAFKAL80ETC concert");
+        }
+
         public GildedRose(IList<Item> Items)
         {
             this.Items = Items;
+            // this list is currently filled by me, but if there will be conneciton to the DB, then this code will be
+            // removed
+            IncreasInQualityItems.Add("Aged Brie");
+            IncreasInQualityItems.Add("Backstage passes to a TAFKAL80ETC concert");
+        }
+        public bool CheckIfIncreasInQualityItem(Item i)
+        {
+            if (IncreasInQualityItems.Contains(i.Name))
+            {
+                return true;
+            }
+            return false;
         }
 
+
+        public bool CheckSpecialItem(Item i)
+        {
+            // this is a current solution, if we have more special items in the future
+            // then I would create a list of those items and check if the current item name exists in that list            
+            if (i.Name == "Sulfuras, Hand of Ragnaros")
+            {
+                return true;
+            }
+            return false;
+        }
+        public void UpdateQualityOfBackstage(Item item)
+        {
+            if (item.Name == "Backstage passes to a TAFKAL80ETC concert")
+            {
+                if (item.SellIn < 11)
+                {
+                    item.Quality++;
+                }
+
+                if (item.SellIn <= 6)
+                {
+                    item.Quality++;
+                }
+
+                if (item.SellIn <= 0)
+                {
+                    item.Quality = 0;
+                }
+            }
+        }
+        public void IncreaseQuality(Item i)
+        {
+            if (i.Quality < 50)
+            {
+                i.Quality++;
+            }
+            if (i.Name == "Backstage passes to a TAFKAL80ETC concert")
+            {
+                UpdateQualityOfBackstage(i);
+            }
+            else
+            {
+                if (i.SellIn <= 0 && i.Quality < 50)
+                {
+                    i.Quality++;
+                }
+            }
+        }
+
+        public void DecreaseQuality(Item i)
+        {
+            if (i.Quality > 0)
+            {
+                i.Quality--;
+            }
+            if (i.SellIn <= 0 && i.Quality > 0)
+            {
+                i.Quality--;
+            }
+            // for conjured items, this is a current solution, if we have more items in the future that decrease twice
+            // each day, then I would create a list of those items and check if the current item name exists in that list            
+            if (i.Name.Contains("Conjured") && i.Quality > 0)
+            {
+                i.Quality--;
+            }
+
+        }
         public void UpdateQuality()
         {
-            for (var i = 0; i < Items.Count; i++)
+            foreach (var item in Items)
             {
-                if (Items[i].Name != "Aged Brie" && Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
+                //if not a special item
+                if (!CheckSpecialItem(item))
                 {
-                    if (Items[i].Quality > 0)
+
+                    // if decrease in quality item
+                    if (!CheckIfIncreasInQualityItem(item))
                     {
-                        if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                        {
-                            Items[i].Quality = Items[i].Quality - 1;
-                        }
+                        DecreaseQuality(item);
                     }
-                }
-                else
-                {
-                    if (Items[i].Quality < 50)
-                    {
-                        Items[i].Quality = Items[i].Quality + 1;
 
-                        if (Items[i].Name == "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].SellIn < 11)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-
-                            if (Items[i].SellIn < 6)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                {
-                    Items[i].SellIn = Items[i].SellIn - 1;
-                }
-
-                if (Items[i].SellIn < 0)
-                {
-                    if (Items[i].Name != "Aged Brie")
-                    {
-                        if (Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].Quality > 0)
-                            {
-                                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                                {
-                                    Items[i].Quality = Items[i].Quality - 1;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Items[i].Quality = Items[i].Quality - Items[i].Quality;
-                        }
-                    }
+                    // if increase in quality item
                     else
                     {
-                        if (Items[i].Quality < 50)
-                        {
-                            Items[i].Quality = Items[i].Quality + 1;
-                        }
+                        IncreaseQuality(item);
+                    }
+
+                    // decrease selling day
+                    item.SellIn--;
+                    if (item.Quality > 50)
+                    {
+                        item.Quality = 50;
                     }
                 }
             }
